@@ -1,41 +1,82 @@
 <?php
 
-namespace Tests\Unit\Controller;
+namespace Tests\Unit\Repository;
 
 use App\Models\User;
+use App\Repositories\Eloquent\UserRepository;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
-use Illuminate\Foundation\Testing\WithFaker;
 
-class AuthenticationControllerTest extends TestCase
+class UserRepositoryTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase;
+
+    private $userRepository;
 
     public function setUp(): void
     {
         parent::setUp();
+        $this->userRepository = app(UserRepository::class);
     }
 
-    public function testCanRegisterUserWithValidData()
+    public function testCanInstantiateUserRepository()
     {
-        $userData['name'] = $this->faker->name();
-        $userData['email'] = $this->faker->unique()->safeEmail();
-        $userData['password'] = '123456';
-
-        $this->post(route('authentication.register'), $userData)->assertStatus(Response::HTTP_CREATED);
+        $userRepository = new UserRepository(app(User::class));
+        $this->assertInstanceOf(UserRepository::class, $userRepository);
     }
 
-    public function testValidUserLoginCanLogin()
+    public function testCantInstantiateUserRepositoryWithWrongClass()
     {
-        $userPassword = '123456';
-        $user = User::factory()->create([
-            'password' => Hash::make($userPassword)
+        $this->expectException(\TypeError::class);
+        new UserRepository(app(UserRepository::class));
+    }
+
+    public function testCanCreateUser()
+    {
+        $this->userRepository->create([
+            'name' => 'Test User',
+            'email' => 'testing@mail.com',
+            'password' => Hash::make('password'),
         ]);
-        $credentials['email'] = $user->email;
-        $credentials['password'] = $userPassword;
 
-        $this->post(route('authentication.login'), $credentials)->assertStatus(Response::HTTP_OK);
+        $this->assertDatabaseHas('users', [
+            'name' => 'Test User',
+            'email' => 'testing@mail.com'
+        ]);
+    }
+
+    public function testCantCreateUserWithoutData()
+    {
+        $this->expectException(QueryException::class);
+        $this->userRepository->create([]);
+    }
+
+    public function testCantCreateUserWithoutName()
+    {
+        $this->expectException(QueryException::class);
+        $this->userRepository->create([
+            'email' => 'johnDoe@gmail.com',
+            'password' => Hash::make('password')
+        ]);
+    }
+
+    public function testCantCreateUserWithoutEmail()
+    {
+        $this->expectException(QueryException::class);
+        $this->userRepository->create([
+            'name' => 'John Doe',
+            'password' => Hash::make('password')
+        ]);
+    }
+
+    public function testCantCreateUserWithoutPassword()
+    {
+        $this->expectException(QueryException::class);
+        $this->userRepository->create([
+            'name' => 'John Doe',
+            'email' => 'johnDoe@gmail.com'
+        ]);
     }
 }

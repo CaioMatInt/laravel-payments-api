@@ -2,53 +2,64 @@
 
 namespace App\Providers;
 
-use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\ServiceProvider;
 
-class RouteServiceProvider extends ServiceProvider
+class ResponseMacroServiceProvider extends ServiceProvider
 {
     /**
-     * The path to the "home" route for your application.
+     * Register any application services.
      *
-     * This is used by Laravel authentication to redirect users after login.
-     *
-     * @var string
+     * @return void
      */
-    public const HOME = '/home';
+    public function register()
+    {
+        //
+
+    }
 
     /**
-     * Define your route model bindings, pattern filters, etc.
+     * Bootstrap any application services.
      *
      * @return void
      */
     public function boot()
     {
-        $this->configureRateLimiting();
+        $this->setSuccessResponse();
+        $this->setFailureResponse();
+    }
 
-        $this->routes(function () {
-            Route::prefix('api')
-                ->middleware('api')
-                ->namespace($this->namespace)
-                ->group(base_path('routes/api.php'));
+    public function setSuccessResponse()
+    {
+        Response::macro('success', function (
+            int $code = 200,
+            array $data = [],
+            string $message = null
+        ) {
+            $response = [
+                "success" => "true",
+                "code" => $code,
+                "message" => $message,
+                "data" => $data
+            ];
 
-            Route::middleware('web')
-                ->namespace($this->namespace)
-                ->group(base_path('routes/web.php'));
+            return response($response, $code);
         });
     }
 
-    /**
-     * Configure the rate limiters for the application.
-     *
-     * @return void
-     */
-    protected function configureRateLimiting()
+    public function setFailureResponse()
     {
-        RateLimiter::for('api', function (Request $request) {
-            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        Response::macro('failure', function (
+            int $code = 500,
+            string $message = null
+        ) {
+            $response = [
+                "success" => "false",
+                "code" => $code,
+                "message" => $message
+            ];
+
+            return response($response, $code);
         });
     }
 }
