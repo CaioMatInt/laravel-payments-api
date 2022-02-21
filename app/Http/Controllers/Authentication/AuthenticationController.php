@@ -16,7 +16,6 @@ class AuthenticationController extends Controller
         private UserRepository $userRepository
     ) { }
 
-
     public function login(LoginRequest $request)
     {
         $credentials = [
