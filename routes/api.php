@@ -15,9 +15,14 @@ use \App\Http\Controllers\Authentication\AuthenticationController;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+Route::prefix('authentication')->group(function () {
+    Route::post('login', [AuthenticationController::class, 'login'])->name('authentication.login');
+    Route::post('register', [AuthenticationController::class, 'register'])->name('authentication.register');
 
-Route::post('authentication/login', [AuthenticationController::class, 'login'])->name('authentication.login');
-Route::post('authentication/register', [AuthenticationController::class, 'register'])->name('authentication.register');
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('logout', [AuthenticationController::class, 'logout'])->name('authentication.logout');
+        Route::get('me', [AuthenticationController::class, 'getAuthenticatedUser'])->name('authentication.me');
+        Route::post('password/email', [AuthenticationController::class, 'user'])->name('authentication.email');
+        Route::post('password/reset', [AuthenticationController::class, 'user'])->name('authentication.user');
+    });
+});

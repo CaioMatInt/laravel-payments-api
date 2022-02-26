@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Authentication;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Authentication\LoginRequest;
 use App\Http\Requests\Authentication\RegisterRequest;
+use App\Http\Resources\UserResource;
 use App\Repositories\Eloquent\UserRepository;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class AuthenticationController extends Controller
 {
@@ -26,19 +28,16 @@ class AuthenticationController extends Controller
         $authAttempt = Auth::attempt($credentials);
 
         if ($authAttempt) {
-            $auth = Auth::user();
-            $responseData['token'] =  $auth->createToken('LaravelSanctumAuth')->plainTextToken;
+            $user = auth()->user();
+            $responseData['name'] =  $user->name;
+            $responseData['access_token'] =  $user->createToken('LaravelSanctumAuth')->plainTextToken;
 
-            return response()->json([
-                $responseData
-            ]);
+            return response()->json($responseData);
         }
 
-        $responseData['message'] = 'Invalid Credentials';
-
-        return response()->json([
-            $responseData
-        ], Response::HTTP_UNAUTHORIZED);
+        throw ValidationException::withMessages([
+            'email' => ['These credentials do not match our records.'],
+        ]);
     }
 
     public function register(RegisterRequest $request)
@@ -47,5 +46,15 @@ class AuthenticationController extends Controller
         $data['password'] = bcrypt($data['password']);
         $this->userRepository->create($data);
         return response()->success(Response::HTTP_CREATED);
+    }
+
+    public function getAuthenticatedUser() {
+        $userResource = new UserResource(auth()->user());
+        return response()->json($userResource);
+    }
+
+    public function logout(Request $request) {
+        $request->user()->currentAccessToken()->delete();
+        return response()->success();
     }
 }
