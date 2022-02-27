@@ -29,9 +29,9 @@ class AuthenticationController extends Controller
             'password' => $request->password
         ];
 
-        $authAttempt = Auth::attempt($credentials);
+        $authAttemptWasSuccessful = Auth::attempt($credentials);
 
-        if ($authAttempt) {
+        if ($authAttemptWasSuccessful) {
             $user = auth()->user();
             $responseData['name'] =  $user->name;
             $responseData['access_token'] =  $user->createToken('LaravelSanctumAuth')->plainTextToken;
