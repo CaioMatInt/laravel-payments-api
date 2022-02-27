@@ -1,3 +1,5 @@
+`Attention: This project is in development stage.`
+
 # Laravel Sanctum Boilerplate
 
 This is a simple Laravel Sanctum Boilerplate.
