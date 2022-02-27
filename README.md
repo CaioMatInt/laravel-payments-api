@@ -1,8 +1,8 @@
-`Attention: This project is in development stage.`
-
 # Laravel Sanctum Boilerplate
 
-This is a simple Laravel Sanctum Boilerplate.
+[![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
+
+This is a simple Laravel Sanctum Boilerplate. Since this project is in progress, it may not work as expected.
 
 ## Features
 
