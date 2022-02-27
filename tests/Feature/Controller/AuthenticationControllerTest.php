@@ -43,7 +43,7 @@ class AuthenticationControllerTest extends TestCase
         ]);
     }
 
-    public function testUserLoginWithoutSendingPassword()
+    public function testUserCantLoginWithoutSendingPassword()
     {
         $userCredentials['email'] = $this->user->email;
 
@@ -54,7 +54,7 @@ class AuthenticationControllerTest extends TestCase
         ]);
     }
 
-    public function testUserLoginWithoutSendingEmail()
+    public function testUserCantLoginWithoutSendingEmail()
     {
         $userCredentials['password'] = $this->unhashedUserPassword;
 
@@ -65,7 +65,7 @@ class AuthenticationControllerTest extends TestCase
         ]);
     }
 
-    public function testUserLoginWithInvalidPassword()
+    public function testUserCantLoginWithInvalidPassword()
     {
         $userCredentials['email'] = $this->user->email;
         $userCredentials['password'] = 'invalidPassword';
@@ -77,7 +77,7 @@ class AuthenticationControllerTest extends TestCase
         ]);
     }
 
-    public function testUserLoginWithInvalidEmail()
+    public function testUserCantLoginWithInvalidEmail()
     {
         $userCredentials['email'] = 'email@mail.com';
         $userCredentials['password'] = '123456';
@@ -255,7 +255,7 @@ class AuthenticationControllerTest extends TestCase
         $response->assertStatus(200)->assertJsonStructure(['message']);
     }
 
-    public function testPasswordResetWhenTokenIsValid()
+    public function testCanResetPasswordWhenTokenIsValid()
     {
         $user = $this->user;
         $token = Password::broker()->createToken($user);
@@ -277,7 +277,7 @@ class AuthenticationControllerTest extends TestCase
         ]);
     }
 
-    public function testPasswordResetWhenTokenIsInvalid()
+    public function testCanResetPasswordWhenTokenIsInvalid()
     {
         $user = $this->user;
         $newPassword = '12345678';
