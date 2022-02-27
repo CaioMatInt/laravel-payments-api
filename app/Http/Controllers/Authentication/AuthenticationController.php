@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Authentication;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Authentication\LoginRequest;
 use App\Http\Requests\Authentication\RegisterRequest;
+use App\Http\Requests\Authentication\ResetPasswordRequest;
+use App\Http\Requests\Authentication\SendPasswordResetLinkEmailRequest;
 use App\Http\Resources\UserResource;
 use App\Repositories\Eloquent\UserRepository;
 use Illuminate\Auth\Events\PasswordReset;
@@ -64,7 +66,7 @@ class AuthenticationController extends Controller
         return response()->success();
     }
 
-    public function sendPasswordResetLinkEmail(Request $request): Response
+    public function sendPasswordResetLinkEmail(SendPasswordResetLinkEmailRequest $request): Response
     {
         $status = Password::sendResetLink(
             $request->only('email'),
@@ -82,7 +84,7 @@ class AuthenticationController extends Controller
         ]);
     }
 
-    public function resetPassword(Request $request): Response
+    public function resetPassword(ResetPasswordRequest $request): Response
     {
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),

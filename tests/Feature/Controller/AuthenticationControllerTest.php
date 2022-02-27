@@ -5,6 +5,7 @@ namespace Controller;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 use function route;
@@ -229,5 +230,169 @@ class AuthenticationControllerTest extends TestCase
     public function testCantShowCurrentAuthenticatedUserWhenNotLoggedIn()
     {
        $this->json('get', route('authentication.me'))->assertUnauthorized();
+    }
+
+    public function testForgotPasswordWhenEmailDoesntExists()
+    {
+        $response = $this->json('POST', route('authentication.password.forgot'), [
+            'email' => 'invalid@email.com'
+        ]);
+
+        $response->assertUnprocessable();
+        $this->assertEquals(
+            'The selected email is invalid.',
+            $response->json('errors.email.0')
+        );
+    }
+
+    public function testForgotPasswordResponseWhenEmailIsValid()
+    {
+        $user = $this->user;
+        $response = $this->json('POST', route('authentication.password.forgot'), [
+            'email' => $user->email
+        ]);
+
+        $response->assertStatus(200)->assertJsonStructure(['message']);
+    }
+
+    public function testPasswordResetWhenTokenIsValid()
+    {
+        $user = $this->user;
+        $token = Password::broker()->createToken($user);
+        $newPassword = '12345678';
+
+        $response = $this->json('POST', route('authentication.password.reset'), [
+            'token' => $token,
+            'email' => $user->email,
+            'password' => $newPassword,
+            'password_confirmation' => $newPassword
+        ]);
+
+        $response->assertStatus(200)->assertJsonStructure([
+            'message'
+        ]);
+
+        $this->assertEquals("Your password has been reset!", $response[
+            'message'
+        ]);
+    }
+
+    public function testPasswordResetWhenTokenIsInvalid()
+    {
+        $user = $this->user;
+        $newPassword = '12345678';
+
+        $response = $this->json('POST', route('authentication.password.reset'), [
+            'token' => 'invalid-token',
+            'email' => $user->email,
+            'password' => $newPassword,
+            'password_confirmation' => $newPassword
+        ]);
+
+        $response->assertStatus(422)->assertJsonStructure([
+            'message'
+        ]);
+
+        $this->assertEquals("This password reset token is invalid.", $response[
+            'message'
+        ]);
+    }
+
+    public function testCantResetPasswordWhenEmailIsNotValid()
+    {
+        $newPassword = '12345678';
+
+        $response = $this->json('POST', route('authentication.password.reset'), [
+            'token' => 'invalid-token',
+            'email' => 'email@mail.com',
+            'password' => $newPassword,
+            'password_confirmation' => $newPassword
+        ]);
+
+        $response->assertUnprocessable();
+        $this->assertEquals(
+            'The selected email is invalid.',
+            $response->json('errors.email.0')
+        );
+    }
+
+    public function testCantResetPasswordWhenPasswordHas5Characters()
+    {
+        $user = $this->user;
+        $token = Password::broker()->createToken($user);
+        $newPassword = '12345';
+
+        $response = $this->json('POST', route('authentication.password.reset'), [
+            'token' => $token,
+            'email' => $user->email,
+            'password' => $newPassword,
+            'password_confirmation' => $newPassword
+        ]);
+
+        $response->assertUnprocessable();
+        $this->assertEquals(
+            'The password must be at least 6 characters.',
+            $response->json('errors.password.0')
+        );
+    }
+
+    public function testCantResetPasswordWhenConfirmingWrongPassword()
+    {
+        $user = $this->user;
+        $token = Password::broker()->createToken($user);
+        $newPassword = '12345678';
+
+        $response = $this->json('POST', route('authentication.password.reset'), [
+            'token' => $token,
+            'email' => $user->email,
+            'password' => $newPassword,
+            'password_confirmation' => 'invalid-password'
+        ]);
+
+        $response->assertUnprocessable();
+
+        $this->assertEquals(
+            'The password confirmation does not match.',
+            $response->json('errors.password.0')
+        );
+    }
+
+    public function testCantResetPasswordWhenNotConfirmingPassword()
+    {
+        $user = $this->user;
+        $token = Password::broker()->createToken($user);
+        $newPassword = '12345678';
+
+        $response = $this->json('POST', route('authentication.password.reset'), [
+            'token' => $token,
+            'email' => $user->email,
+            'password' => $newPassword
+        ]);
+
+        $response->assertUnprocessable();
+
+        $this->assertEquals(
+            'The password confirmation field is required.',
+            $response->json('errors.password_confirmation.0')
+        );
+    }
+
+    public function testCantResetPasswordWhenNotSendingToken()
+    {
+        $user = $this->user;
+        $newPassword = '12345678';
+
+        $response = $this->json('POST', route('authentication.password.reset'), [
+            'email' => $user->email,
+            'password' => $newPassword,
+            'password_confirmation' => $newPassword
+        ]);
+
+        $response->assertUnprocessable();
+
+        $this->assertEquals(
+            'The token field is required.',
+            $response->json('errors.token.0')
+        );
     }
 }
