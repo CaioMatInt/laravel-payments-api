@@ -75,11 +75,11 @@ class AuthenticationController extends Controller
 
         if($status === Password::RESET_LINK_SENT) {
             return response()->success(200, [], __($status));
-        } else {
-            throw ValidationException::withMessages([
-                'email' => __($status)
-            ]);
         }
+
+        throw ValidationException::withMessages([
+            'email' => __($status)
+        ]);
     }
 
     public function resetPassword(Request $request): Response
@@ -99,10 +99,10 @@ class AuthenticationController extends Controller
 
         if ($status == Password::PASSWORD_RESET) {
             return response()->success(200, [], __($status));
-        } else {
-            throw ValidationException::withMessages([
-                'email' => __($status)
-            ]);
         }
+
+        throw ValidationException::withMessages([
+            'email' => __($status)
+        ]);
     }
 }
