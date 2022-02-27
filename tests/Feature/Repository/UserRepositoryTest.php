@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit\Repository;
+namespace Repository;
 
 use App\Models\User;
 use App\Repositories\Eloquent\UserRepository;
@@ -8,6 +8,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
+use function app;
 
 class UserRepositoryTest extends TestCase
 {

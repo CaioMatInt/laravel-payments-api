@@ -1,14 +1,13 @@
 <?php
 
-namespace Tests\Unit\Controller;
+namespace Controller;
 
 use App\Models\User;
-use GuzzleHttp\Psr7\HttpFactory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
+use function route;
 
 class AuthenticationControllerTest extends TestCase
 {
@@ -36,7 +35,7 @@ class AuthenticationControllerTest extends TestCase
         $userCredentials['password'] = $this->unhashedUserPassword;
 
         $response = $this->post(route('authentication.login'), $userCredentials);
-        $response->assertStatus(Response::HTTP_OK);
+        $response->assertOk();
         $response->assertJsonStructure([
             'access_token',
             'name'
@@ -95,7 +94,7 @@ class AuthenticationControllerTest extends TestCase
         $userData['email'] = 'testing@mail.com';
         $userData['password'] = '123456';
 
-        $this->post(route('authentication.register'), $userData)->assertStatus(Response::HTTP_CREATED);
+        $this->post(route('authentication.register'), $userData)->assertCreated();
     }
 
     public function testCantRegisterUserWithoutEmail()
@@ -212,15 +211,13 @@ class AuthenticationControllerTest extends TestCase
         );
 
         $response = $this->json('POST', route('authentication.logout'));
-
-        $response->assertStatus(Response::HTTP_OK);
+        $response->assertOk();
     }
-
 
     public function testCanShowCurrentAuthenticatedUser()
     {
         $response = $this->actingAs($this->user)->get(route('authentication.me'));
-        $response->assertStatus(Response::HTTP_OK);
+        $response->assertOk();
         $response->assertJsonStructure([
             'id',
             'name',
